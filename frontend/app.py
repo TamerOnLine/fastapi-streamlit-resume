@@ -6,7 +6,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 import requests
 import streamlit as st
@@ -16,7 +16,7 @@ import streamlit as st
 # ─────────────────────────────
 st.set_page_config(page_title="Resume PDF Builder", page_icon="🧾", layout="centered")
 st.title("🧾 Resume PDF Builder (FastAPI + Streamlit)")
-st.caption("كل الحقول اختيارية. ارفع JSON (Browse files) → Load uploaded لتعبئة الحقول، أو عدِّل واحفظ بـ Save ثم اضغط Generate PDF.")
+st.caption("كل الحقول اختيارية. ارفع JSON (Browse files) → Load uploaded لتعبئة الحقول، أو عدِّل واحفظ بـ Save.")
 
 # ─────────────────────────────
 # مسارات
@@ -26,6 +26,14 @@ PROFILES_DIR = BASE_DIR / "profiles"
 OUTPUTS_DIR = BASE_DIR / "outputs"
 PROFILES_DIR.mkdir(exist_ok=True)
 OUTPUTS_DIR.mkdir(exist_ok=True)
+
+# ─────────────────────────────
+# حالة الجلسة للـ PDF
+# ─────────────────────────────
+if "pdf_bytes" not in st.session_state:
+    st.session_state.pdf_bytes = None
+if "pdf_filename" not in st.session_state:
+    st.session_state.pdf_filename = "resume.pdf"
 
 # ─────────────────────────────
 # مفاتيح الحقول (ثابتة)
@@ -55,7 +63,8 @@ def persist_json_atomic(path: Path, data: Dict[str, Any]) -> None:
     tmp = path.with_suffix(path.suffix + ".tmp")
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-        f.flush(); os.fsync(f.fileno())
+        f.flush()
+        os.fsync(f.fileno())
     os.replace(tmp, path)
 
 def payload_from_form() -> Dict[str, Any]:
@@ -97,17 +106,11 @@ def apply_payload_to_form(p: Dict[str, Any]) -> None:
     st.session_state[K["rtl_mode"]] = bool(p.get("rtl_mode", False))
 
 # ─────────────────────────────
-# الشريط الجانبي (Minimal)
+# الشريط الجانبي (Save / Load)
 # ─────────────────────────────
 st.sidebar.header("💾 Save / Load (Minimal)")
-
-# الاسم الذي سنحفظ به عند الضغط على Save
 preset_name = st.sidebar.text_input("Preset name", value="", placeholder="my-profile")
-
-# رفع JSON (زر Browse files)
 uploaded = st.sidebar.file_uploader(" ", type=["json"], label_visibility="collapsed")
-
-# صف أزرار: Load uploaded + Save
 col_load, col_save = st.sidebar.columns([1, 1])
 
 if col_load.button("Load uploaded", use_container_width=True):
@@ -116,7 +119,7 @@ if col_load.button("Load uploaded", use_container_width=True):
     else:
         try:
             payload = json.loads(uploaded.getvalue().decode("utf-8"))
-            apply_payload_to_form(payload)  # تعبئة الحقول فورًا
+            apply_payload_to_form(payload)
             st.sidebar.success("Loaded from uploaded JSON.")
             st.rerun()
         except Exception as e:
@@ -135,7 +138,7 @@ if col_save.button("Save", use_container_width=True):
             st.sidebar.error(f"Save failed: {e}")
 
 # ─────────────────────────────
-# الحقول (كلها اختيارية) – خارج أي form لتتحدث فورياً
+# الحقول (كلها اختيارية)
 # ─────────────────────────────
 colA, colB = st.columns(2)
 with colA:
@@ -169,11 +172,15 @@ photo = st.file_uploader("Profile Photo (optional)", type=["png", "jpg", "jpeg"]
 api_base = st.text_input("API Base URL", "http://127.0.0.1:8000", key=K["api_base"])
 
 # ─────────────────────────────
-# توليد PDF
+# أزرار الإجراءات في الشريط الجانبي
 # ─────────────────────────────
-generate = st.button("Generate PDF", type="primary")
+st.sidebar.markdown("---")
+st.sidebar.subheader("⚙️ Actions")
+
+generate = st.sidebar.button("Generate PDF", type="primary", use_container_width=True)
 
 if generate:
+    # جهّز البيانات
     data = {
         "name": st.session_state.get(K["name"], ""),
         "location": st.session_state.get(K["location"], ""),
@@ -198,22 +205,39 @@ if generate:
         resp.raise_for_status()
         pdf_bytes = resp.content
 
-        # حفظ تلقائي للـ PDF
+        # خزّن في الجلسة لزر التحميل والمعاينة
+        st.session_state.pdf_bytes = pdf_bytes
+        st.session_state.pdf_filename = "resume.pdf"
+
+        # خزّن نسخة بالقرص
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         pdf_path = OUTPUTS_DIR / f"resume_{ts}.pdf"
         with open(pdf_path, "wb") as f:
             f.write(pdf_bytes)
 
-        st.success(f"تم توليد PDF وحفظه: {pdf_path}")
-        st.download_button("⬇️ Download resume.pdf", data=pdf_bytes, file_name="resume.pdf", mime="application/pdf")
-
-        b64 = base64.b64encode(pdf_bytes).decode("utf-8")
-        st.markdown(
-            f'<iframe src="data:application/pdf;base64,{b64}" width="100%" height="700px" '
-            f'style="border:1px solid #333;border-radius:8px;"></iframe>',
-            unsafe_allow_html=True,
-        )
+        st.sidebar.success(f"تم توليد PDF: {pdf_path.name}")
     except requests.RequestException as e:
-        st.error(f"Request failed: {e}")
+        st.sidebar.error(f"Request failed: {e}")
     except Exception as e:
-        st.error(f"Unexpected error: {e}")
+        st.sidebar.error(f"Unexpected error: {e}")
+
+# زر التحميل في الشريط الجانبي
+if st.session_state.pdf_bytes:
+    st.sidebar.download_button(
+        "Download resume.pdf",
+        data=st.session_state.pdf_bytes,
+        file_name=st.session_state.pdf_filename,
+        mime="application/pdf",
+        use_container_width=True,
+    )
+
+# ─────────────────────────────
+# معاينة PDF داخل الصفحة (إن وُجد)
+# ─────────────────────────────
+if st.session_state.pdf_bytes:
+    b64 = base64.b64encode(st.session_state.pdf_bytes).decode("utf-8")
+    st.markdown(
+        f'<iframe src="data:application/pdf;base64,{b64}" width="100%" height="700px" '
+        f'style="border:1px solid #333;border-radius:8px;"></iframe>',
+        unsafe_allow_html=True,
+    )
