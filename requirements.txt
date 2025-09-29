@@ -1,0 +1,11 @@
+# Add your dependencies here
+fastapi
+uvicorn[standard]
+pydantic>=2
+reportlab
+arabic-reshaper
+python-bidi
+Pillow
+streamlit
+requests
+python-multipart
