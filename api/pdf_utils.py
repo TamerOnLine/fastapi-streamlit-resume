@@ -8,7 +8,7 @@ from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib import colors
+
 from urllib.parse import urlparse
 
 
@@ -20,39 +20,114 @@ try:
 except Exception:
     AR_OK = False
 
-# ===== ثوابت التباعد والخطوط =====
-HEADING_SIZE = 14   # حجم العناوين الرئيسية/الثانوية
-TEXT_SIZE    = 14   # حجم النص العادي
-LEADING_BODY       = 12 # المسافة بين أسطر الفقرة (Lining)
-LEADING_BODY_RTL   = 19 # في حالة RTL (عادة أكبر بسبب شكل الحروف)
-GAP_AFTER_HEADING    = 10   # بعد العنوان الرئيسي/الثانوي
-GAP_BETWEEN_PARAS    = 5    # بين الفقرات
-GAP_BETWEEN_SECTIONS = 12   # بين أقسام السيرة
-NAME_SIZE = 18  # حجم اسم المستخدم
-NAME_GAP  = 10  # مسافة تحت الاسم
+# ===============================
+# Typography & Spacing (A4 tuned)
+# ===============================
+HEADING_SIZE = 14           # عناوين الأقسام (يمين/يسار)
+TEXT_SIZE    = 12           # نص الفقرات القياسي
+NAME_SIZE    = 18           # اسم كبير أعلى الكارد اليسار
+NAME_GAP     = 10           # (mm) فراغ تحت الاسم قبل المحتوى
 
-# ألوان/ستايل
-LEFT_BG       = colors.HexColor("#f1f3f5")  # خلفية عمود اليسار
-LEFT_BORDER   = colors.HexColor("#d0d4d9")
-HEADING_COLOR = colors.black
-SUBHEAD_COLOR = colors.HexColor("#0b7285")  # أزرق للعناوين (يمين)
-MUTED         = colors.HexColor("#6c757d")
+# ===== ضبط خط نص العمود اليسار =====
+LEFT_TEXT_FONT       = "Helvetica"
+LEFT_TEXT_FONT_BOLD  = "Helvetica-Bold"
+LEFT_TEXT_IS_BOLD    = True    # ← بدّلها إلى False لو تريد عادي
 
-CARD_RADIUS   = 6     # نصف قطر زوايا الكارد
-CARD_PAD      = 6 * mm  # حيز داخلي للكارد
-RULE_COLOR    = colors.HexColor("#c9c9c9")  # لون الخط الفاصل
 
-ICON_SIZE   = 6 * mm       # حجم الأيقونة (مربع)
-ICON_PAD_X  = 6            # مسافة أفقية بين الأيقونة والنص
-ICON_TEXT_DY = -6          # تزبيط بسيط لارتفاع النص
-ICON_VALIGN = "middle"     # محاذاة عمودية للنص مع الأيقونة
+# مسافات الأسطر (line height)
+LEADING_BODY      = 12      # ≈ 1.5× من 12pt — مريح للقراءة
+LEADING_BODY_RTL  = 20      # RTL يحتاج مسافة أكبر قليلًا
 
-LEFT_TEXT_SIZE = 12     # حجم نص عمود اليسار
-LEFT_LINE_GAP  = 16     # المسافة بين أسطر نص عمود اليسار
+# فراغات رأسية عامة
+GAP_AFTER_HEADING    = 10   # بعد عنوان القسم
+GAP_BETWEEN_PARAS    = 10    # بين الفقرات داخل نفس القسم
+GAP_BETWEEN_SECTIONS = 12   # بين الأقسام المتتالية
 
-LINKEDIN_REDIRECT_URL = "https://tamer.dev/in"
-USE_LINKEDIN_REDIRECT = False 
-USE_MOBILE_LINKEDIN   = False 
+# ===============
+# Colors & Rules
+# ===============
+from reportlab.lib import colors
+LEFT_BG       = colors.HexColor("#F7F8FA")  # خلفية الكارد اليسار فاتحة
+LEFT_BORDER   = colors.HexColor("#E3E6EA")  # إطار خفيف للكارد
+HEADING_COLOR = colors.black                # لون العناوين
+SUBHEAD_COLOR = colors.HexColor("#0B7285")  # عناوين فرعية (مشاريع يمين)
+MUTED         = colors.HexColor("#6C757D")  # ميتاداتا ثانوية
+RULE_COLOR    = colors.HexColor("#D7DBE0")  # لون الخطوط الفاصلة
+EDU_TITLE_COLOR = SUBHEAD_COLOR # لون عنوان التعليم
+
+# =============
+# Card Styling
+# =============
+from reportlab.lib.units import mm
+CARD_RADIUS = 6            # زوايا الكارد اليسار
+CARD_PAD    = 6 * mm       # حيز داخلي للكارد
+
+# =========
+# Icons Row
+# =========
+ICON_SIZE    = 6 * mm      # حجم الأيقونة (مربع)
+ICON_PAD_X   = 4           # مسافة بين الأيقونة والنص
+ICON_TEXT_DY = -5          # تصحيح بسيط لخط الأساس للنص بجانب الأيقونة
+ICON_VALIGN  = "middle"    # محاذاة عمودية للنص مع وسط الأيقونة
+
+# =======================================
+# Left column (inside card) base text
+# =======================================
+LEFT_TEXT_SIZE = 12        # حجم النص داخل الكارد
+LEFT_LINE_GAP  = 10        # مسافة السطر داخل الكارد (قوائم/بنود)
+
+# =======================================
+# Left extra sections (inside card)
+# =======================================
+LEFT_SEC_HEADING_SIZE      = 14   # عنوان القسم
+LEFT_SEC_TEXT_SIZE         = 12   # بنود القسم
+LEFT_SEC_TITLE_TOP_GAP     = 6    # قبل العنوان
+LEFT_SEC_TITLE_BOTTOM_GAP  = 6    # بعد العنوان وقبل الخط
+LEFT_SEC_RULE_COLOR        = RULE_COLOR # لون الخط
+LEFT_SEC_RULE_WIDTH        = 1    # سمك الخط
+LEFT_SEC_RULE_TO_LIST_GAP  = 15    # بعد الخط وقبل أول بند
+LEFT_SEC_LINE_GAP          = 20   # مسافة بين البنود
+LEFT_SEC_BULLET_RADIUS     = 1.2  # نقطة البولت
+LEFT_SEC_BULLET_X_OFFSET   = 2.5  # إزاحة X للنقطة
+LEFT_SEC_TEXT_X_OFFSET     = 8    # إزاحة نص البند عن النقطة
+LEFT_SEC_SECTION_GAP       = 2    # فراغ بسيط بعد نهاية كل قسم
+LEFT_AFTER_CONTACT_GAP = 10    # فراغ بعد معلومات الاتصال وقبل الأقسام الإضافية  
+
+# =======================================
+# Right extra sections (main column)
+# =======================================
+RIGHT_SEC_HEADING_SIZE       = HEADING_SIZE   # اتساق مع العناوين
+RIGHT_SEC_TEXT_SIZE          = TEXT_SIZE      # اتساق مع الفقرات
+RIGHT_SEC_TITLE_TO_RULE_GAP  = 10             # بعد العنوان وقبل الخط
+RIGHT_SEC_RULE_COLOR         = RULE_COLOR   # لون الخط
+RIGHT_SEC_RULE_WIDTH         = 0.8  
+RIGHT_SEC_RULE_TO_TEXT_GAP   = 14            # بعد الخط وقبل النص
+RIGHT_SEC_LINE_GAP           = 12   # مسافة السطر داخل الفقرات
+RIGHT_SEC_SECTION_GAP        = GAP_BETWEEN_SECTIONS  # فراغ بين الأقسام
+LEFT_SEC_TITLE_ALIGN = "left"  # "left" | "center" | "right"
+
+RIGHT_SEC_PARA_GAP = 4 
+
+# ===== Projects layout =====
+PROJECT_TITLE_SIZE         = TEXT_SIZE + 1   # حجم عنوان المشروع
+PROJECT_TITLE_GAP_BELOW    = 14               # فراغ تحت عنوان المشروع
+PROJECT_DESC_LEADING       = 14              # ← مسافة السطر داخل وصف المشروع
+PROJECT_DESC_PARA_GAP      = 2               # فراغ بسيط بين فقرات الوصف
+PROJECT_LINK_TEXT_SIZE     = TEXT_SIZE - 1   # حجم خط الرابط
+PROJECT_LINK_GAP_ABOVE     = -10              # فراغ فوق سطر الرابط
+PROJECT_BLOCK_GAP          = 24              # فراغ بعد كل مشروع قبل التالي
+
+
+# --- Weiterbildung (Education) spacing ---
+EDU_TEXT_LEADING = 12      # جرّب 14–16 حسب ذوقك
+EDU_PARA_GAP     = GAP_BETWEEN_PARAS
+
+# =======================================
+# LinkedIn handling (professional setup)
+# =======================================
+LINKEDIN_REDIRECT_URL = "https://tamer.dev/in"  # رابط وسيط مملوك لك (اختياري)
+USE_LINKEDIN_REDIRECT = False                   # True لو تريد استخدام الرابط الوسيط دائمًا
+USE_MOBILE_LINKEDIN   = False   
 
 def rtl(txt: str) -> str:
     if not txt:
@@ -191,16 +266,14 @@ def draw_par(
     align: str = "left",
     rtl_mode: bool = False,
     leading: int | None = None,
+    para_gap: int | None = None,   # ← جديد
 ) -> float:
-    """
-    يرسم فقرة/فقرات. إذا لم تُمرَّر leading نحسبها تلقائياً من الثوابت.
-    نضيف GAP_BETWEEN_PARAS بعد كل فقرة.
-    """
     c.setFont(font, size)
     cur = y
     line_gap = leading if leading is not None else (
         LEADING_BODY_RTL if (rtl_mode and align == "right") else LEADING_BODY
     )
+    gap_between_paras = GAP_BETWEEN_PARAS if para_gap is None else para_gap  # ← جديد
 
     for raw in lines:
         txt = rtl(raw) if (rtl_mode and align == "right") else raw
@@ -211,8 +284,9 @@ def draw_par(
             else:
                 c.drawString(x, cur, ln)
             cur -= line_gap
-        cur -= GAP_BETWEEN_PARAS
+        cur -= gap_between_paras   # ← استخدم الفاصل الممرَّر
     return cur
+
 
 
 def draw_section(
@@ -324,22 +398,24 @@ def draw_icon_line(
     icon_w: float = 8*mm,
     icon_h: float = 8*mm,
     pad_x: float = 6,
-    size: int = TEXT_SIZE,
+    size: int = LEFT_TEXT_SIZE,
     valign: str = "middle",
     text_dy: float = 0,
     line_gap: int | None = None,
     max_w: float | None = None,
     halign: str = "left",
     container_w: float | None = None,
-    link_url: str | None = None,          # ← جديد: رابط اختياري
+    link_url: str | None = None,
 ) -> float:
-    # قياس للتمركز العمودي
-    font_name = "Helvetica"
-    asc = pdfmetrics.getAscent(font_name) / 1000.0 * size
-    dsc = abs(pdfmetrics.getDescent(font_name)) / 1000.0 * size
+    # الخط المستخدم لقيمة النص
+    value_font = LEFT_TEXT_FONT_BOLD if LEFT_TEXT_IS_BOLD else LEFT_TEXT_FONT
+
+    # استخدم نفس الخط للقياسات حتى يكون التمركز صحيحًا
+    asc = pdfmetrics.getAscent(value_font) / 1000.0 * size
+    dsc = abs(pdfmetrics.getDescent(value_font)) / 1000.0 * size
 
     # محاذاة أفقية (اختياري)
-    text_w_nowrap = pdfmetrics.stringWidth(value, font_name, size)
+    text_w_nowrap = pdfmetrics.stringWidth(value, value_font, size)
     if halign in ("center", "right") and container_w:
         total_w = icon_w + pad_x + text_w_nowrap
         if halign == "center":
@@ -352,7 +428,8 @@ def draw_icon_line(
         img = ImageReader(icon_path)
         c.drawImage(img, x, y - icon_h, width=icon_w, height=icon_h, mask="auto")
     except Exception:
-        c.setFont(font_name, size + 2)
+        # fallback بسيط لو الصورة غير متوفرة
+        c.setFont(value_font, size + 2)
         c.drawString(x, y, "•")
 
     # 2) موضع النص
@@ -367,29 +444,31 @@ def draw_icon_line(
     text_y = baseline + text_dy
 
     # 3) النص (+ رابط اختياري)
-    c.setFont(font_name, size)
+    c.setFont(value_font, size)
     if max_w is None:
         c.drawString(text_x, text_y, value)
         if link_url:
-            tw = pdfmetrics.stringWidth(value, font_name, size)
-            # مستطيل الرابط: من أسفل الحروف إلى أعلى بسيط
-            c.linkURL(link_url, (text_x, text_y - dsc, text_x + tw, text_y + asc * 0.2), relative=0, thickness=0)
+            tw = pdfmetrics.stringWidth(value, value_font, size)
+            c.linkURL(link_url, (text_x, text_y - dsc, text_x + tw, text_y + asc*0.2),
+                      relative=0, thickness=0)
         used_h = max(icon_h, asc + dsc)
         gap = line_gap if line_gap is not None else max(LEADING_BODY, used_h + 2)
         return y - gap
     else:
         text_w = max_w - (text_x - x)
-        lines = wrap_text(value, font_name, size, text_w)
+        lines = wrap_text(value, value_font, size, text_w)
         cur_y = text_y
         for i, ln in enumerate(lines):
             c.drawString(text_x, cur_y, ln)
-            if link_url and i == 0:  # نربط السطر الأول فقط
-                tw = pdfmetrics.stringWidth(ln, font_name, size)
-                c.linkURL(link_url, (text_x, cur_y - dsc, text_x + tw, cur_y + asc * 0.2), relative=0, thickness=0)
+            if link_url and i == 0:
+                tw = pdfmetrics.stringWidth(ln, value_font, size)
+                c.linkURL(link_url, (text_x, cur_y - dsc, text_x + tw, cur_y + asc*0.2),
+                          relative=0, thickness=0)
             cur_y -= (line_gap if line_gap is not None else LEADING_BODY)
         block_h = (text_y - cur_y) + (line_gap if line_gap is not None else LEADING_BODY)
         used_h = max(icon_h, block_h)
         return y - used_h
+
 
 # ——— معلومات شخصية مع أيقونات ———
 # مسارات الأيقونات (PNG)
@@ -440,6 +519,103 @@ def info_line(
         halign=align_h, container_w=max_w,
         link_url=link,                         # ← هنا نمرّر الرابط
     )
+
+def draw_left_extra_sections(
+    c: canvas.Canvas,
+    inner_x: float,
+    inner_w: float,
+    cursor: float,
+    sections_left: list[dict],
+) -> float:
+    """يرسم الأقسام الإضافية داخل الكارد يسار باستخدام متغيرات الضبط أعلاه."""
+    for sec in (sections_left or []):
+        title = (sec.get("title") or "").strip()
+        lines = [str(x).strip() for x in (sec.get("lines") or []) if str(x).strip()]
+        if not title or not lines:
+            continue
+
+        # فراغ قبل العنوان
+        cursor -= LEFT_SEC_TITLE_TOP_GAP
+
+        # عنوان القسم
+        c.setFont("Helvetica-Bold", LEFT_SEC_HEADING_SIZE)
+        c.setFillColor(colors.black)
+        if LEFT_SEC_TITLE_ALIGN == "center":
+            c.drawCentredString(inner_x + inner_w/2, cursor, title)
+        elif LEFT_SEC_TITLE_ALIGN == "right":
+            c.drawRightString(inner_x + inner_w, cursor, title)
+        else:  # left
+            c.drawString(inner_x, cursor, title)
+
+        # خط فاصل
+        cursor -= LEFT_SEC_TITLE_BOTTOM_GAP
+        c.setStrokeColor(LEFT_SEC_RULE_COLOR)
+        c.setLineWidth(LEFT_SEC_RULE_WIDTH)
+        c.line(inner_x, cursor, inner_x + inner_w, cursor)
+
+        # بداية العناصر
+        cursor -= LEFT_SEC_RULE_TO_LIST_GAP
+        c.setFont("Helvetica", LEFT_SEC_TEXT_SIZE)
+        c.setFillColor(colors.black)
+        for ln in lines:
+            # نقطة بولِت
+            c.circle(inner_x + LEFT_SEC_BULLET_X_OFFSET,
+                     cursor + 3, LEFT_SEC_BULLET_RADIUS, stroke=1, fill=1)
+            # نص العنصر
+            c.drawString(inner_x + LEFT_SEC_TEXT_X_OFFSET, cursor, ln)
+            cursor -= LEFT_SEC_LINE_GAP
+
+        # فراغ بعد القسم (اختياري)
+        cursor -= LEFT_SEC_SECTION_GAP
+
+    return cursor
+
+
+def draw_right_extra_sections(
+    c: canvas.Canvas,
+    right_x: float,
+    right_w: float,
+    yR: float,
+    sections_right: list[dict],
+) -> float:
+    """يرسم الأقسام الإضافية في العمود اليمين باستخدام متغيرات الضبط أعلاه."""
+    for sec in (sections_right or []):
+        title = (sec.get("title") or "").strip()
+        lines = [str(x).strip() for x in (sec.get("lines") or []) if str(x).strip()]
+        if not title or not lines:
+            continue
+
+        # عنوان
+        c.setFont("Helvetica-Bold", RIGHT_SEC_HEADING_SIZE)
+        c.setFillColor(colors.black)
+        c.drawString(right_x, yR, title)
+        yR -= RIGHT_SEC_TITLE_TO_RULE_GAP
+
+        # خط
+        c.setStrokeColor(RIGHT_SEC_RULE_COLOR)
+        c.setLineWidth(RIGHT_SEC_RULE_WIDTH)
+        c.line(right_x, yR, right_x + right_w, yR)
+        yR -= RIGHT_SEC_RULE_TO_TEXT_GAP
+
+        # نصوص (التفاف) بمسافة سطر مضبوطة
+        c.setFont("Helvetica", RIGHT_SEC_TEXT_SIZE)
+        c.setFillColor(colors.black)
+        yR = draw_par(
+            c=c, x=right_x, y=yR,
+            lines=lines,
+            font="Helvetica", size=RIGHT_SEC_TEXT_SIZE, max_w=right_w,
+            align="left", rtl_mode=False,
+            leading=RIGHT_SEC_LINE_GAP,   # تباعد السطر (مثلاً 12–14)
+            para_gap=RIGHT_SEC_PARA_GAP,  # تباعد بين البنود (مثلاً 0–4)
+        )
+
+
+        # فراغ بين الأقسام
+        yR -= RIGHT_SEC_SECTION_GAP
+
+    return yR
+
+
 
 
 # ——— المولّد ———
@@ -493,20 +669,47 @@ def build_resume_pdf(
     inner_w = CARD_W - 2*CARD_PAD
     cursor  = CARD_TOP - CARD_PAD  # نبدأ من أعلى الكارد للداخل بقليل
 
-    # الصورة في وسط الكارد
+    # الصورة في وسط الكارد (دائرية)
     if photo_bytes:
         try:
             img = ImageReader(BytesIO(photo_bytes))
-            max_w, max_h = inner_w, 42*mm
-            iw, ih = img.getSize()
-            s = min(max_w/iw, max_h/ih)
-            pw, ph = iw*s, ih*s
-            px = inner_x + (inner_w - pw) / 2
-            py = cursor - ph
-            c.drawImage(img, px, py, width=pw, height=ph, preserveAspectRatio=True, mask="auto")
-            cursor = py - 6*mm
+
+            # قطر الدائرة (مربع الاحتواء)
+            max_d = 42*mm                       # غيّرها لو حاب تكبر/تصغر
+            d = min(inner_w, max_d)
+            r = d / 2.0
+
+            # مركز الدائرة: منتصف الكارد أفقياً وتحت الكرسر بمقدار نصف القطر
+            cx = inner_x + inner_w/2.0
+            cy = cursor - r
+
+            # مربّع الصورة الذي سنقصّه بالدائرة
+            ix = cx - r
+            iy = cy - r
+
+            # قصّ بمسار دائري ثم ارسم الصورة
+            c.saveState()
+            p = c.beginPath()
+            p.circle(cx, cy, r)
+            c.clipPath(p, stroke=0, fill=0)
+
+            # ارسم الصورة داخل المربّع المحيط بالدائرة
+            c.drawImage(img, ix, iy, width=d, height=d,
+                        preserveAspectRatio=True, mask="auto")
+
+            c.restoreState()
+
+            # (اختياري) إطار خفيف حول الدائرة
+            c.setStrokeColor(LEFT_BORDER)
+            c.setLineWidth(1)
+            c.circle(cx, cy, r)
+
+            # انزل تحت الصورة بقليل
+            cursor = iy - 6*mm
+
         except Exception:
             pass
+
 
     # الاسم في وسط الكارد
     if name:
@@ -533,105 +736,197 @@ def build_resume_pdf(
     if github:    cursor = info_line(c, inner_x, cursor, "GitHub",       github,    inner_w_available)
     if linkedin:  cursor = info_line(c, inner_x, cursor, "LinkedIn",     linkedin,  inner_w_available)
 
-    # مهارات داخل الكارد
-    if skills:
-        cursor -= 6
-        c.setFont("Helvetica-Bold", HEADING_SIZE)
-        c.setFillColor(HEADING_COLOR)
-        c.drawCentredString(inner_x + inner_w/2, cursor, "Technische Fähigkeiten")
-        cursor -= 6
-        draw_rule(c, inner_x, cursor, inner_w)
-        cursor -= 6
-
-        c.setFont("Helvetica", TEXT_SIZE)
-        c.setFillColor(colors.black)
-        for sk in skills:
-            # نقطة بسيطة كبولِت
-            c.circle(inner_x + 2.5, cursor + 3, 1.2, stroke=1, fill=1)
-            c.drawString(inner_x + 8, cursor, sk)
-            cursor -= LEADING_BODY
-
-    # لغات (اختياري داخل الكارد)
-    if languages:
-        cursor -= 6
-        c.setFont("Helvetica-Bold", HEADING_SIZE)
-        c.drawCentredString(inner_x + inner_w/2, cursor, "Sprachen")
-        cursor -= 6
-        draw_rule(c, inner_x, cursor, inner_w)
-        cursor -= 6
-
-        c.setFont("Helvetica", TEXT_SIZE)
-        c.setFillColor(colors.black)
-        lang_line = ", ".join(languages)
-        cursor = draw_par(
-            c=c, x=inner_x, y=cursor,
-            lines=[lang_line], font="Helvetica", size=TEXT_SIZE,
-            max_w=inner_w, align="left", rtl_mode=False
-        )
-
-    # لا نستخدم yL هنا لأن كل شيء صار داخل الكارد.
-    # ابدأ العمود الأيمن من أعلى المحتوى
-    yR = y_top - GAP_AFTER_HEADING
+    # ... بعد آخر info_line
+    info_drawn = any([location, phone, email, birthdate, github, linkedin])
+    if info_drawn:
+        cursor -= LEFT_AFTER_CONTACT_GAP
     # ---------------------------------------------------------------------------
 
 
+
+    # ===== المهارات داخل الكارد (بعنوان وخط فاصل وبنود ملتفة) =====
+    if skills:
+        # عنوان القسم
+        cursor -= LEFT_SEC_TITLE_TOP_GAP
+        c.setFont("Helvetica-Bold", LEFT_SEC_HEADING_SIZE)
+        c.setFillColor(HEADING_COLOR)
+
+        if LEFT_SEC_TITLE_ALIGN == "center":
+            c.drawCentredString(inner_x + inner_w/2, cursor, "Technische Fähigkeiten")
+        elif LEFT_SEC_TITLE_ALIGN == "right":
+            c.drawRightString(inner_x + inner_w, cursor, "Technische Fähigkeiten")
+        else:  # left
+            c.drawString(inner_x, cursor, "Technische Fähigkeiten")
+
+        # خط فاصل
+        cursor -= LEFT_SEC_TITLE_BOTTOM_GAP
+        c.setStrokeColor(LEFT_SEC_RULE_COLOR)
+        c.setLineWidth(LEFT_SEC_RULE_WIDTH)
+        c.line(inner_x, cursor, inner_x + inner_w, cursor)
+
+        # عناصر المهارات (مع التفاف داخل كل بند)
+        cursor -= LEFT_SEC_RULE_TO_LIST_GAP
+        c.setFont("Helvetica", LEFT_SEC_TEXT_SIZE)
+        c.setFillColor(colors.black)
+
+        max_text_w = inner_w - (LEFT_SEC_TEXT_X_OFFSET + 2)
+
+        for sk in skills:
+            wrapped = wrap_text(sk, "Helvetica", LEFT_SEC_TEXT_SIZE, max_text_w)
+            for i, ln in enumerate(wrapped):
+                if i == 0:  # النقطة للسطر الأول فقط
+                    c.circle(inner_x + LEFT_SEC_BULLET_X_OFFSET,
+                            cursor + 3, LEFT_SEC_BULLET_RADIUS, stroke=1, fill=1)
+                c.drawString(inner_x + LEFT_SEC_TEXT_X_OFFSET, cursor, ln)
+                cursor -= LEFT_SEC_LINE_GAP
+
+        cursor -= LEFT_SEC_SECTION_GAP  # فراغ بعد القسم
+
+    # ===== اللغات داخل الكارد =====
+    if languages:
+        cursor -= LEFT_SEC_TITLE_TOP_GAP
+        c.setFont("Helvetica-Bold", LEFT_SEC_HEADING_SIZE)
+        if LEFT_SEC_TITLE_ALIGN == "center":
+            c.drawCentredString(inner_x + inner_w/2, cursor, "Sprachen")
+        elif LEFT_SEC_TITLE_ALIGN == "right":
+            c.drawRightString(inner_x + inner_w, cursor, "Sprachen")
+        else:
+            c.drawString(inner_x, cursor, "Sprachen")
+
+        cursor -= LEFT_SEC_TITLE_BOTTOM_GAP
+        c.setStrokeColor(LEFT_SEC_RULE_COLOR)
+        c.setLineWidth(LEFT_SEC_RULE_WIDTH)
+        c.line(inner_x, cursor, inner_x + inner_w, cursor)
+
+        cursor -= LEFT_SEC_RULE_TO_LIST_GAP
+        c.setFont("Helvetica", LEFT_SEC_TEXT_SIZE)
+        langs = ", ".join(languages)
+        # استخدم نفس مسافة الأسطر في اليسار
+        cursor = draw_par(
+            c=c, x=inner_x, y=cursor,
+            lines=[langs], font="Helvetica", size=LEFT_SEC_TEXT_SIZE,
+            max_w=inner_w, align="left", rtl_mode=False,
+            leading=LEFT_SEC_LINE_GAP
+        )
+        cursor -= LEFT_SEC_SECTION_GAP
+
+    # ---------------------------------------------------------------------------
+# … بعد قسم اللغات مباشرة
+    cursor = draw_left_extra_sections(c, inner_x, inner_w, cursor, sections_left)
+
+    yR = y_top - GAP_AFTER_HEADING 
+
     # ===== العمود الأيمن =====
+
+    yR = draw_right_extra_sections(c, right_x, right_w, yR, sections_right)
+
     # عنوان رئيسي
     c.setFont("Helvetica-Bold", HEADING_SIZE)
     c.setFillColor(HEADING_COLOR)
     c.drawString(right_x, yR, "Ausgewählte Projekte")
     yR -= GAP_AFTER_HEADING
     draw_rule(c, right_x, yR, right_w)
-    yR -= 8
+    yR -= RIGHT_SEC_RULE_TO_TEXT_GAP
 
     for title, desc, link in projects:
-        # عنوان المشروع (أزرق)
-        c.setFont("Helvetica-Bold", TEXT_SIZE + 1)
+        # عنوان المشروع
+        c.setFont("Helvetica-Bold", PROJECT_TITLE_SIZE)
         c.setFillColor(SUBHEAD_COLOR)
         c.drawString(right_x, yR, title or "")
-        yR -= (GAP_AFTER_HEADING // 2)
+        yR -= PROJECT_TITLE_GAP_BELOW
 
-        # الوصف
+        # وصف المشروع — نضبط leading للمسافة بين السطور
         c.setFillColor(colors.black)
+        # الوصف
         yR = draw_par(
             c=c, x=right_x, y=yR,
             lines=(desc or "").split("\n"),
             font=(AR_FONT if rtl_mode else "Helvetica"),
             size=TEXT_SIZE, max_w=right_w,
             align=("right" if rtl_mode else "left"),
-            rtl_mode=rtl_mode
+            rtl_mode=rtl_mode,
+            leading=PROJECT_DESC_LEADING,
         )
 
-        # Repo
+        # ↙︎ أضف مسافة قبل الرابط
         if link:
-            c.setFont("Helvetica-Bold", TEXT_SIZE)
+            # قلّل/زد هذه لتغيير الفجوة قبل الرابط
+            yR -= PROJECT_LINK_GAP_ABOVE  # اجعلها 0 أو حتى سالبة لتقليل الفراغ
+
+            font_name = "Helvetica-Oblique"
+            c.setFont(font_name, PROJECT_LINK_TEXT_SIZE)
             c.setFillColor(HEADING_COLOR)
-            c.drawString(right_x, yR, "Repo:")
-            c.setFont("Helvetica", TEXT_SIZE)
-            c.setFillColor(colors.black)
-            c.drawString(right_x + 30, yR, link)
-            yR -= LEADING_BODY
 
-        yR -= GAP_AFTER_HEADING
+            link_text = f"Repo: {link}"
+            c.drawString(right_x, yR, link_text)
 
-    # خط فاصل + عنوان التعليم
+            tw  = pdfmetrics.stringWidth(link_text, font_name, PROJECT_LINK_TEXT_SIZE)
+            asc = pdfmetrics.getAscent(font_name)  / 1000.0 * PROJECT_LINK_TEXT_SIZE
+            dsc = abs(pdfmetrics.getDescent(font_name)) / 1000.0 * PROJECT_LINK_TEXT_SIZE
+
+            # جعل منطقة النقر ملاصقة للنص
+            c.linkURL(link, (right_x, yR - dsc, right_x + tw, yR + asc * 0.2), relative=0, thickness=0)
+
+            yR -= PROJECT_BLOCK_GAP
+        else:
+            yR -= PROJECT_BLOCK_GAP
+
+
+
+
+    # --------- التعليم / التدريب (يمين) ---------
     draw_rule(c, right_x, yR, right_w)
-    yR -= 10
+    yR -= RIGHT_SEC_RULE_TO_TEXT_GAP
 
     c.setFont("Helvetica-Bold", HEADING_SIZE)
     c.setFillColor(HEADING_COLOR)
     c.drawString(right_x, yR, "Berufliche Weiterbildung")
     yR -= GAP_AFTER_HEADING
     draw_rule(c, right_x, yR, right_w)
-    yR -= 8
+    yR -= RIGHT_SEC_RULE_TO_TEXT_GAP   # مسافة صغيرة بعد الخط
 
     if education_items:
-        c.setFillColor(colors.black)
-        yR = draw_par(
-            c=c, x=right_x, y=yR,
-            lines=education_items, font="Helvetica", size=TEXT_SIZE,
-            max_w=right_w, align="left", rtl_mode=False
-        )
+        for block in education_items:
+            parts = [ln.strip() for ln in str(block).splitlines() if ln.strip()]
+            if not parts:
+                continue
+
+            # --- العنوان (السطر الأول) ملوّن وغامق ---
+            title_lines = wrap_text(parts[0], "Helvetica-Bold", TEXT_SIZE, right_w)
+            c.setFont("Helvetica-Bold", TEXT_SIZE)
+            c.setFillColor(EDU_TITLE_COLOR)   # لوّن العنوان فقط
+            for tl in title_lines:
+                c.drawString(right_x, yR, tl)
+                yR -= RIGHT_SEC_LINE_GAP
+
+            # ارجِع للأسود قبل بقية الأسطر
+            c.setFillColor(colors.black)
+
+            # --- بقية الأسطر نص عادي أسود ---
+            rest = parts[1:]
+            if rest:
+                yR = draw_par(
+                    c=c, x=right_x, y=yR,
+                    lines=rest,
+                    font="Helvetica",
+                    size=RIGHT_SEC_TEXT_SIZE,
+                    max_w=right_w,
+                    align="left",
+                    rtl_mode=False,
+                    leading=EDU_TEXT_LEADING,
+                    para_gap=2,
+                )
+
+            # مسافة بين العناصر
+            yR -= RIGHT_SEC_SECTION_GAP
+
+
+
+
+
+
+    # … بعد رسم education_items
+
 
     c.showPage()
     c.save()

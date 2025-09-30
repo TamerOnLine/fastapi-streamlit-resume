@@ -189,14 +189,18 @@ if generate:
         "github": st.session_state.get(K["github"], ""),
         "linkedin": st.session_state.get(K["linkedin"], ""),
         "birthdate": st.session_state.get(K["birthdate"], ""),
-        "skills": st.session_state.get(K["skills"], ""),
-        "languages": st.session_state.get(K["languages"], ""),
+
+        # ⬇️ غيّر المفتاحين هنا
+        "skills_text": st.session_state.get(K["skills"], ""),
+        "languages_text": st.session_state.get(K["languages"], ""),
+
         "projects_text": st.session_state.get(K["projects_text"], ""),
         "education_text": st.session_state.get(K["education_text"], ""),
         "sections_left_text": st.session_state.get(K["sections_left_text"], ""),
         "sections_right_text": st.session_state.get(K["sections_right_text"], ""),
         "rtl_mode": str(bool(st.session_state.get(K["rtl_mode"], False))).lower(),
     }
+
     files = {"photo": (photo.name, photo.getvalue())} if photo is not None else None
 
     try:
